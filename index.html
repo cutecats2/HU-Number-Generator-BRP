@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<style>
+  :root{
+    --bg: #000000;
+    --panel: #141414;
+    --panel-2: #1f1f1f;
+    --border: #333333;
+    --amber: #ffc700;
+    --amber-dim: #7a5f00;
+    --text: #ffffff;
+    --text-dim: #999999;
+    --mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+    --sans: 'IBM Plex Sans', -apple-system, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);padding:32px 20px 60px;}
+  .wrap{max-width:760px;margin:0 auto;}
+  header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:28px;border-bottom:1px solid var(--border);padding-bottom:16px;}
+  h1{font-size:19px;font-weight:600;margin:0;}
+  .prefix-tag{font-family:var(--mono);font-size:12px;color:var(--amber);background:rgba(242,163,52,0.1);border:1px solid var(--amber-dim);padding:4px 8px;border-radius:3px;}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:20px;margin-bottom:20px;}
+  .panel-title{font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);margin:0 0 14px;}
+  .gen-row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;}
+  .field label{display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;}
+  .field input{background:var(--panel-2);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:9px 10px;font-size:14px;font-family:var(--sans);width:90px;}
+  .field input:focus{outline:none;border-color:var(--amber);}
+  button{font-family:var(--sans);font-size:14px;font-weight:600;border-radius:4px;border:1px solid transparent;cursor:pointer;padding:10px 18px;}
+  .btn-primary{background:var(--amber);color:#1a1300;}
+  .btn-primary:hover{background:#ffb851;}
+  .btn-primary:disabled{opacity:0.6;cursor:default;}
+  .btn-ghost{background:transparent;border-color:var(--border);color:var(--text);font-weight:500;font-size:12px;padding:7px 12px;}
+  .btn-ghost:hover{border-color:var(--text-dim);}
+  .stat{font-size:12px;color:var(--text-dim);margin-left:auto;text-align:right;}
+  .stat b{color:var(--text);font-family:var(--mono);font-weight:600;}
+  .result-block{margin-top:18px;}
+  .result-list, .log-list{list-style:none;margin:0;padding:0;}
+  .result-list li{display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:15px;padding:9px 12px;background:var(--panel-2);border:1px solid var(--border);border-left:3px solid var(--amber);border-radius:4px;margin-bottom:6px;}
+  .copy-icon{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:11px;padding:4px 8px;font-family:var(--sans);font-weight:500;}
+  .copy-icon:hover{color:var(--amber);}
+  .result-actions{display:flex;justify-content:flex-end;margin-top:8px;}
+  .search-input{width:100%;background:var(--panel-2);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:9px 10px;font-size:13px;font-family:var(--mono);margin-bottom:12px;}
+  .search-input:focus{outline:none;border-color:var(--amber);}
+  .log-list{max-height:340px;overflow-y:auto;}
+  .log-list li{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:13px;padding:8px 10px;border-bottom:1px solid var(--border);}
+  .log-list li:last-child{border-bottom:none;}
+  .log-ts{color:var(--text-dim);font-family:var(--sans);font-size:11px;}
+  .empty{color:var(--text-dim);font-size:13px;padding:10px 0;}
+  .err{color:#e0664c;font-size:12px;margin-top:8px;}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--amber);color:#1a1300;font-size:13px;font-weight:600;padding:9px 16px;border-radius:4px;opacity:0;pointer-events:none;transition:opacity 0.15s;}
+  .toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <svg width="32" height="32" viewBox="0 0 100 100" style="color:var(--text);flex-shrink:0;" aria-hidden="true"><g id="brp"><path d="M60.134,63.186c1.022-2.64-.298-5.727-4.236-5.727h-10.346l-5.897,16.222h10.985c4.151,0,6.408-1.341,7.345-3.768.617-1.618.426-3.215-.383-4.194,1.192-.468,2.065-1.32,2.533-2.533ZM53.747,68.466c-.319.852-.937,1.277-2.129,1.277h-5.684l.979-2.704h5.961c.873,0,1.192.532.873,1.426ZM55.706,62.782c-.319.852-.937,1.277-2.129,1.277h-5.578l.979-2.704h5.854c.873,0,1.192.532.873,1.426Z" fill="currentColor"/><path d="M94.239,57.46h-10.197l-5.918,16.222h4.811l2.108-5.769h5.471c4.62,0,6.962-1.15,8.026-4.066,1.235-3.428-.319-6.387-4.3-6.387ZM94.175,62.782c-.319.852-.937,1.277-2.129,1.277h-5.578l.979-2.704h5.854c.873,0,1.192.532.873,1.426Z" fill="currentColor"/><path d="M79.351,63.846c1.256-3.428-.298-6.387-4.279-6.387h-10.197l-5.897,16.222h4.79l2.108-5.769h3.853l1.512,5.769h4.854l-1.724-5.982c2.661-.468,4.173-1.661,4.982-3.853ZM75.008,62.782c-.319.852-.937,1.277-2.129,1.277h-5.578l.979-2.704h5.854c.873,0,1.192.532.873,1.426Z" fill="currentColor"/></g><g id="gear"><path d="M19.03,52.797c-.301-17.151,13.756-31.496,30.91-31.528,17.135-.033,31.036,13.848,31.036,30.975h19.025c0-2.289-.156-4.541-.455-6.748-.043-.316-.281-.571-.592-.64l-10.982-2.416c-2.083-.458-2.905-2.988-1.489-4.583l7.467-8.412c.212-.239.254-.585.103-.866-2.151-3.996-4.829-7.664-7.942-10.914-.22-.23-.563-.296-.855-.169l-10.298,4.498c-1.955.854-4.106-.71-3.899-2.832l1.096-11.196c.031-.317-.137-.622-.424-.761-4.01-1.938-8.319-3.357-12.838-4.168-.314-.056-.629.091-.791.366l-5.692,9.699c-1.08,1.84-3.739,1.84-4.819,0l-5.692-9.699c-.161-.275-.477-.422-.791-.366-4.519.811-8.828,2.23-12.838,4.168-.287.139-.455.444-.424.761l1.096,11.196c.208,2.123-1.944,3.686-3.899,2.832l-10.298-4.498c-.292-.128-.634-.061-.855.169-3.113,3.25-5.791,6.919-7.942,10.914-.151.281-.109.627.103.866l7.467,8.412c1.416,1.595.594,4.125-1.489,4.583l-10.982,2.416c-.312.069-.55.324-.592.64C.156,47.703,0,49.955,0,52.244s.156,4.541.455,6.749c.043.316.281.571.592.64l10.982,2.416c2.083.458,2.905,2.988,1.489,4.583l-7.467,8.412c-.212.239-.254.585-.103.866,4.896,9.094,12.524,16.496,21.787,21.111l6.542-18.085c-8.979-5.301-15.052-15.002-15.247-26.138Z" fill="currentColor"/></g></svg>
+      <h1>HU Serial Number Generator</h1>
+    </div>
+    <span class="prefix-tag">PREFIX 302008</span>
+  </header>
+
+  <div class="panel">
+    <p class="panel-title">Generate</p>
+    <div class="gen-row">
+      <div class="field">
+        <label for="qty">Quantity</label>
+        <input type="number" id="qty" value="1" min="1" max="100" step="1">
+      </div>
+      <button class="btn-primary" id="genBtn">Generate</button>
+      <div class="stat" id="counterStat">Loading&hellip;</div>
+    </div>
+    <div id="genErr" class="err" style="display:none;"></div>
+
+    <div class="result-block" id="resultBlock" style="display:none;">
+      <ul class="result-list" id="resultList"></ul>
+      <div class="result-actions">
+        <button class="btn-ghost" id="copyAllBtn">Copy all</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <p class="panel-title">Issued numbers &mdash; look up to reprint</p>
+    <input type="text" class="search-input" id="searchInput" placeholder="Type digits to filter, e.g. last 6 of a number">
+    <ul class="log-list" id="logList"></ul>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var lastBatch = [];
+
+function showToast(msg){
+  var t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(function(){ t.classList.remove("show"); }, 1400);
+}
+
+function copyText(str){
+  navigator.clipboard.writeText(str).then(function(){ showToast("Copied"); })
+    .catch(function(){ showToast("Copy failed"); });
+}
+
+function renderCounterStat(lastIssued){
+  document.getElementById("counterStat").innerHTML =
+    "Last issued: <b>" + (lastIssued > 0 ? "300208" + String(lastIssued).padStart(14,"0") : "none yet") + "</b>";
+}
+
+function renderLog(entries){
+  var list = document.getElementById("logList");
+  if (!entries || entries.length === 0){
+    list.innerHTML = '<li class="empty">Nothing found.</li>';
+    return;
+  }
+  var html = "";
+  for (var i = 0; i < entries.length; i++){
+    var e = entries[i];
+    html += '<li><span>' + e.number + '</span><span class="log-ts">' + e.ts + '</span>' +
+      '<button class="copy-icon" data-num="' + e.number + '">COPY</button></li>';
+  }
+  list.innerHTML = html;
+  var btns = list.querySelectorAll(".copy-icon");
+  for (var j = 0; j < btns.length; j++){
+    btns[j].addEventListener("click", function(ev){ copyText(ev.target.getAttribute("data-num")); });
+  }
+}
+
+function renderResults(batch){
+  var block = document.getElementById("resultBlock");
+  var list = document.getElementById("resultList");
+  block.style.display = "block";
+  var html = "";
+  for (var i = 0; i < batch.length; i++){
+    html += '<li><span>' + batch[i] + '</span><button class="copy-icon" data-num="' + batch[i] + '">COPY</button></li>';
+  }
+  list.innerHTML = html;
+  var btns = list.querySelectorAll(".copy-icon");
+  for (var j = 0; j < btns.length; j++){
+    btns[j].addEventListener("click", function(ev){ copyText(ev.target.getAttribute("data-num")); });
+  }
+  document.getElementById("copyAllBtn").onclick = function(){ copyText(batch.join("\n")); };
+}
+
+function loadState(){
+  google.script.run.withSuccessHandler(function(state){
+    renderCounterStat(state.lastIssued);
+    renderLog(state.log);
+  }).withFailureHandler(function(err){
+    document.getElementById("counterStat").textContent = "Could not load state";
+  }).getState();
+}
+
+function generate(){
+  var errEl = document.getElementById("genErr");
+  errEl.style.display = "none";
+  var qty = parseInt(document.getElementById("qty").value, 10);
+  if (!qty || qty < 1 || qty > 100){
+    errEl.textContent = "Enter a quantity between 1 and 100.";
+    errEl.style.display = "block";
+    return;
+  }
+  var btn = document.getElementById("genBtn");
+  btn.disabled = true;
+  btn.textContent = "Generating...";
+  google.script.run.withSuccessHandler(function(res){
+    btn.disabled = false;
+    btn.textContent = "Generate";
+    renderCounterStat(res.lastIssued);
+    renderResults(res.batch);
+    loadState();
+  }).withFailureHandler(function(err){
+    btn.disabled = false;
+    btn.textContent = "Generate";
+    errEl.textContent = err.message || "Something went wrong. Try again.";
+    errEl.style.display = "block";
+  }).generateNumbers(qty);
+}
+
+document.getElementById("genBtn").addEventListener("click", generate);
+document.getElementById("searchInput").addEventListener("input", function(e){
+  google.script.run.withSuccessHandler(renderLog).searchLog(e.target.value);
+});
+
+loadState();
+</script>
+</body>
+</html>
